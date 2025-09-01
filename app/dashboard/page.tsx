@@ -111,7 +111,7 @@ export default function DashboardPage() {
                 <ul className="divide-y divide-gray-200">
                     {sites.map(site => (
                         <li key={site.id} className="py-3">
-                           <a href={`${site.subdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                           <a href={`http://${site.subdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                              {site.subdomain}.{process.env.NEXT_PUBLIC_ROOT_DOMAIN?.replace(':3000','')}
                            </a>
                         </li>
