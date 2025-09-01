@@ -15,9 +15,13 @@ export const config = {
 
 export default async function middleware(req: NextRequest) {
   const url = req.nextUrl;
-  const hostname =  req.headers.get('host') || process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+  const hostname = req.headers.get('host');
 
-  // Asegúrate de que hostname no sea undefined y obtén el dominio raíz
+  // Si el hostname no está presente, no podemos aplicar la lógica de subdominios.
+  if (!hostname) {
+    return NextResponse.next(); // Simplemente continúa sin reescribir la URL.
+  }
+  
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000';
   
   // Extrae el subdominio si no es el dominio principal
@@ -30,3 +34,5 @@ export default async function middleware(req: NextRequest) {
   
   return NextResponse.rewrite(url);
 }
+
+
