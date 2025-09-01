@@ -1,8 +1,10 @@
+// Ruta: app/dashboard/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from 'next/link';
 
 interface Site {
   id: string;
@@ -110,10 +112,21 @@ export default function DashboardPage() {
             {sites.length > 0 ? (
                 <ul className="divide-y divide-gray-200">
                     {sites.map(site => (
-                        <li key={site.id} className="py-3">
-                           <a href={`http://${site.subdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                             {site.subdomain}.{process.env.NEXT_PUBLIC_ROOT_DOMAIN?.replace(':3000','')}
-                           </a>
+                       <li key={site.id} className="py-4 flex justify-between items-center">
+                           <div>
+                               <span className="font-medium text-gray-800">{site.subdomain}</span>
+                               <a href={`http://${site.subdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 ml-2 block hover:underline">
+                                 {site.subdomain}.{process.env.NEXT_PUBLIC_ROOT_DOMAIN?.replace(':3000','')}
+                               </a>
+                           </div>
+                           <div className="flex items-center gap-4">
+                               <a href={`http://${site.subdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-600 hover:text-gray-900 transition-colors">
+                                 Visitar
+                               </a>
+                               <Link href={`/editor/${site.id}`} className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+                                 Editar
+                               </Link>
+                           </div>
                         </li>
                     ))}
                 </ul>
@@ -125,3 +138,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
