@@ -1,9 +1,9 @@
+// Ruta: app/api/sites/route.ts
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
-import { PrismaClient, Prisma } from "@prisma/client";
-import { authOptions } from "@/lib/auth"
-
-const prisma = new PrismaClient();
+import { Prisma } from "@prisma/client";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma"; // Cambio: Importamos el cliente centralizado
 
 // GET /api/sites - Obtiene los sitios del usuario autenticado
 export async function GET() {
@@ -46,7 +46,6 @@ export async function POST(request: Request) {
     return NextResponse.json(newSite, { status: 201 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // Check for unique constraint violation (subdomain already exists)
         if (error.code === 'P2002') {
             return NextResponse.json({ error: "Este subdominio ya está en uso." }, { status: 409 });
         }

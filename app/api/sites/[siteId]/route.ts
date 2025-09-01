@@ -1,10 +1,8 @@
 // Ruta: app/api/sites/[siteId]/route.ts
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import { authOptions } from "@/lib/auth"
-
-const prisma = new PrismaClient();
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma"; // Cambio: Importamos el cliente centralizado
 
 // GET /api/sites/[siteId] - Obtiene la información de un sitio específico
 export async function GET(request: Request, { params }: { params: { siteId: string } }) {
@@ -46,7 +44,6 @@ export async function PUT(request: Request, { params }: { params: { siteId: stri
   }
 
   try {
-    // updateMany ensures the user is the owner before updating
     const updateResult = await prisma.site.updateMany({
       where: {
         id: siteId,
