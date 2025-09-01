@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
@@ -44,9 +44,12 @@ export async function POST(request: Request) {
       },
     });
     return NextResponse.json(newSite, { status: 201 });
-  } catch (error: any) {
-    if (error.code === 'P2002') {
-        return NextResponse.json({ error: "Este subdominio ya está en uso." }, { status: 409 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // Check for unique constraint violation (subdomain already exists)
+        if (error.code === 'P2002') {
+            return NextResponse.json({ error: "Este subdominio ya está en uso." }, { status: 409 });
+        }
     }
     return NextResponse.json({ error: "Ocurrió un error al crear el sitio." }, { status: 500 });
   }
