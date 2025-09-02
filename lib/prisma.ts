@@ -1,14 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+// prisma.ts (o el nombre de tu archivo)
 
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
-}
+import { PrismaClient } from '@prisma/client/edge' // Fíjate en el '/edge'
+import { withAccelerate } from '@prisma/extension-accelerate' // Importa la extensión
 
-export const prisma =
-  global.prisma ??
-  new PrismaClient({
-    log: ["query"],
-  });
+const prisma = new PrismaClient().$extends(withAccelerate())
 
-if (process.env.NODE_ENV !== "production") global.prisma = prisma;
+export default prisma
