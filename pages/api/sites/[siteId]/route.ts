@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from '@/lib/prisma';
 
-export const runtime = "node"; 
+
 async function getUser(request: Request) {
   const apiKey = request.headers.get("Authorization")?.replace("Bearer ", "");
   if (!apiKey) return null;
