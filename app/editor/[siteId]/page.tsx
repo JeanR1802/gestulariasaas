@@ -1,18 +1,17 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
- 
+
 export default function EditorPage() {
   const params = useParams();
-  const siteId = params.siteId;
+  const siteId = params?.siteId; // ✅ usa optional chaining
+
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const apiKey = localStorage.getItem("apiKey");
-    if (!apiKey) return;
-
-    fetch(`/api/sites/${siteId}`, { headers: { Authorization: `Bearer ${apiKey}` } })
+    if (!siteId) return; // 🔹 evita correr la API si no hay siteId
+    fetch(`/api/sites/${siteId}`)
       .then(res => res.json())
       .then(data => {
         setContent(data.content || "");
@@ -20,29 +19,11 @@ export default function EditorPage() {
       });
   }, [siteId]);
 
-  async function save() {
-    const apiKey = localStorage.getItem("apiKey");
-    if (!apiKey) return;
-
-    await fetch(`/api/sites/${siteId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ content }),
-    });
-    alert("Guardado!");
-  }
-
-  if (loading) return <p>Cargando...</p>;
+  if (!siteId) return <div>Site no encontrado</div>;
 
   return (
-    <div className="mt-10">
-      <h2 className="text-2xl font-bold mb-4">Editor de sitio</h2>
-      <textarea
-        className="w-full h-96 border p-2 rounded"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-      />
-      <button onClick={save} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Guardar</button>
+    <div>
+      {loading ? <p>Cargando...</p> : <textarea value={content} onChange={e => setContent(e.target.value)} />}
     </div>
   );
 }
