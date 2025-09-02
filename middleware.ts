@@ -1,35 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSiteBySubdomain } from "./lib/getSite";
 
 export const config = {
   matcher: [
-    // Todas las rutas excepto API, _next, _static, archivos públicos
     "/((?!api/|_next/|_static/|[\\w-]+\\.\\w+).*)",
   ],
 };
 
-export default function middleware(req: NextRequest) {
+export default async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const hostname = req.headers.get("host");
-
   if (!hostname) return NextResponse.next();
 
-  // Dominio principal
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
 
-  // Si hostname es exactamente el rootDomain, no hacemos nada
-  if (hostname === rootDomain) {
+  if (hostname === rootDomain || hostname === `www.${rootDomain}`) {
     return NextResponse.next();
   }
 
-  // Extraemos el subdominio (todo antes del rootDomain)
   const subdomain = hostname.replace(`.${rootDomain}`, "");
 
-  // Ignoramos subdominios vacíos o especiales como www
-  if (!subdomain || subdomain === "www") {
-    return NextResponse.next();
+  if (!subdomain) return NextResponse.next();
+
+  // Buscar si existe en BD
+  const site = await getSiteBySubdomain(subdomain);
+  if (!site) {
+    // Opcional: redirigir a página de error o al root
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // Reescribimos la ruta para que Next.js la maneje como /<subdominio>/ruta
+  // Reescribir la ruta
   url.pathname = `/${subdomain}${url.pathname}`;
   return NextResponse.rewrite(url);
 }

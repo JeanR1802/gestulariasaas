@@ -1,3 +1,4 @@
+//lib/auth.ts
 import GoogleProvider from "next-auth/providers/google";
 import { type NextAuthOptions } from "next-auth";
 

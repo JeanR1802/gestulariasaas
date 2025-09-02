@@ -1,55 +1,33 @@
-// Ruta: app/api/sites/route.ts
-import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
-import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma"; // Cambio: Importamos el cliente centralizado
+import { prisma } from '@/lib/prisma';
 
-// GET /api/sites - Obtiene los sitios del usuario autenticado
-export async function GET() {
-  const session = await getServerSession(authOptions);
+async function getUserFromApiKey(request: Request) {
+  const apiKey = request.headers.get("Authorization")?.replace("Bearer ", "");
+  if (!apiKey) return null;
+  return await prisma.user.findUnique({ where: { apiKey } });
+}
 
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
+// Obtener todos los sitios del usuario
+export async function GET(request: Request) {
+  const user = await getUserFromApiKey(request);
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const sites = await prisma.site.findMany({
-    where: {
-      userId: session.user.id,
-    },
-  });
-
+  const sites = await prisma.site.findMany({ where: { userId: user.id } });
   return NextResponse.json(sites);
 }
 
-// POST /api/sites - Crea un nuevo sitio
+// Crear nuevo sitio
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  const user = await getUserFromApiKey(request);
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
-
-  const { subdomain } = await request.json();
-
-  if (!subdomain || !/^[a-z0-9-]+$/.test(subdomain)) {
-      return NextResponse.json({ error: "Subdominio inválido." }, { status: 400 });
-  }
+  const { name, subdomain } = await request.json();
+  if (!subdomain) return NextResponse.json({ error: "Faltan datos" }, { status: 400 });
 
   try {
-    const newSite = await prisma.site.create({
-      data: {
-        subdomain: subdomain,
-        userId: session.user.id,
-      },
-    });
-    return NextResponse.json(newSite, { status: 201 });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-            return NextResponse.json({ error: "Este subdominio ya está en uso." }, { status: 409 });
-        }
-    }
-    return NextResponse.json({ error: "Ocurrió un error al crear el sitio." }, { status: 500 });
+    const site = await prisma.site.create({ data: { name, subdomain, userId: user.id } });
+    return NextResponse.json(site, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "Subdominio ya existe" }, { status: 409 });
   }
 }
