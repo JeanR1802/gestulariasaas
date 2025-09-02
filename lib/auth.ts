@@ -1,6 +1,23 @@
-//lib/auth.ts
+// lib/auth.ts
 import GoogleProvider from "next-auth/providers/google";
-import { type NextAuthOptions } from "next-auth";
+import { type NextAuthOptions, type DefaultSession, type JWT } from "next-auth";
+
+// ✨ Extiende los tipos de NextAuth para que incluya `id` en session.user y JWT
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+    } & DefaultSession["user"];
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    email: string;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -10,22 +27,22 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "jwt",      // 👈 usa JWT en vez de DB
-    maxAge: 24 * 60 * 60, // sesión dura 1 día
-    updateAge: 60 * 60,   // refresco cada hora (opcional)
+    strategy: "jwt",
+    maxAge: 24 * 60 * 60,
+    updateAge: 60 * 60,
   },
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        token.id = profile.id;
-        token.email = profile.email;
+        token.id = profile.id as string;
+        token.email = profile.email as string;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.email = token.email as string;
+        session.user.id = token.id;
+        session.user.email = token.email;
       }
       return session;
     },
