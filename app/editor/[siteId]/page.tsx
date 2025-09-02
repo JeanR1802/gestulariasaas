@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-
+export const runtime = "node"; 
 export default function EditorPage() {
   const params = useParams();
   const siteId = params.siteId;
