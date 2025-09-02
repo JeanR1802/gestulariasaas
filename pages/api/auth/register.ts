@@ -1,22 +1,22 @@
+// pages/api/auth/register.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "../../../lib/prisma";
 import bcrypt from "bcryptjs";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Método no permitido" });
 
   const { name, email, password } = req.body;
-  if (!name || !email || !password) return res.status(400).json({ error: "Faltan datos" });
 
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) return res.status(400).json({ error: "Usuario ya existe" });
+  if (!name || !email || !password) return res.status(400).json({ error: "Faltan campos" });
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) return res.status(400).json({ error: "Usuario ya existe" });
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const apiKey = crypto.randomUUID();
-
   const user = await prisma.user.create({
-    data: { name, email, password: hashedPassword, apiKey },
+    data: { name, email, password: hashedPassword },
   });
 
-  res.status(201).json({ apiKey: user.apiKey, email: user.email, name: user.name });
+  res.status(201).json({ id: user.id, email: user.email, name: user.name });
 }
