@@ -1,15 +1,20 @@
-// prisma.ts
+// lib/prisma.ts
 
 import { PrismaClient } from '@prisma/client/edge';
 import { withAccelerate } from '@prisma/extension-accelerate';
 
-// Deja que TypeScript infiera el tipo de la variable 'prisma'
-let prisma;
+// Esto asegura que la variable 'prisma' tenga un tipo globalmente reconocido.
+// Si ya existe un cliente, lo usa. Si no, lo crea.
+const prisma = globalThis.prisma || new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+});
 
+// En producción, extiende el cliente para usar Accelerate.
 if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient().$extends(withAccelerate());
+  globalThis.prisma = prisma.$extends(withAccelerate());
 } else {
-  prisma = new PrismaClient();
+  // En desarrollo, el cliente se mantiene simple para evitar errores.
+  globalThis.prisma = prisma;
 }
 
-export default prisma;
+export default globalThis.prisma;

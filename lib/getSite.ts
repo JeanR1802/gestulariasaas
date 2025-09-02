@@ -1,3 +1,4 @@
+// En tu archivo lib/getSite.ts
 import prisma from "./prisma";
 
 export async function getSiteBySubdomain(subdomain: string) {
